@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop stop-color="#123A2C"/>
+			<stop offset="1" stop-color="#06150F"/>
+		</linearGradient>
+		<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+			<path d="M20 0H0V20" fill="none" stroke="#7AE0A3" stroke-opacity=".12"/>
+		</pattern>
+	</defs>
+	<rect width="320" height="180" rx="14" fill="url(#bg)"/>
+	<rect x="8" y="8" width="304" height="164" rx="10" fill="url(#grid)"/>
+	<rect x="56" y="46" width="64" height="64" rx="10" fill="#17452F" stroke="#5FD08C" stroke-width="2"/>
+	<rect x="128" y="46" width="64" height="64" rx="10" fill="#1B5A3F" stroke="#8CFFB6" stroke-width="2"/>
+	<rect x="200" y="46" width="64" height="64" rx="10" fill="#17452F" stroke="#5FD08C" stroke-width="2"/>
+	<path d="M76 78l12-7v14l-12 7z" fill="#3D9A63"/>
+	<path d="M88 71l12 7v14l-12-7z" fill="#2E7A50"/>
+	<path d="M76 78l12 7 12-7" fill="none" stroke="#A8FFC7" stroke-width="2"/>
+	<circle cx="160" cy="78" r="14" fill="none" stroke="#C9FFDC" stroke-width="3"/>
+	<path d="M160 70v8l6 4" fill="none" stroke="#C9FFDC" stroke-width="3" stroke-linecap="round"/>
+	<path d="M220 72h24M220 82h24M220 92h16" stroke="#7BE3A5" stroke-width="3" stroke-linecap="round"/>
+	<path d="M56 124h208" stroke="#2F714F" stroke-width="2" stroke-dasharray="4 5"/>
+	<text x="160" y="146" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" fill="#8FD9B0">Modrinth · 依赖自动补全 · 一键启停</text>
+</svg>

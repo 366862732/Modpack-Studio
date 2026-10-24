@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop stop-color="#123A2C"/>
+			<stop offset="1" stop-color="#06150F"/>
+		</linearGradient>
+		<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+			<path d="M20 0H0V20" fill="none" stroke="#7AE0A3" stroke-opacity=".12"/>
+		</pattern>
+	</defs>
+	<rect width="320" height="180" rx="14" fill="url(#bg)"/>
+	<rect x="8" y="8" width="304" height="164" rx="10" fill="url(#grid)"/>
+	<path d="M104 78l48-26 48 26v52l-48 26-48-26z" fill="#17452F" stroke="#7BE3A5" stroke-width="3" stroke-linejoin="round"/>
+	<path d="M104 78l48 26 48-26M152 104v52" fill="none" stroke="#7BE3A5" stroke-width="3" stroke-linejoin="round"/>
+	<path d="M164 78h20v20l-10-6-10 6z" fill="#A8FFC7"/>
+	<path d="M214 46l34 6-8 32" fill="none" stroke="#C9FFDC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+	<path d="M238 52l-30 32" stroke="#C9FFDC" stroke-width="4" stroke-linecap="round"/>
+	<text x="160" y="170" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" fill="#8FD9B0">mrpack · CurseForge · Prism · ZIP</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop stop-color="#123A2C"/>
+			<stop offset="1" stop-color="#06150F"/>
+		</linearGradient>
+		<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+			<path d="M20 0H0V20" fill="none" stroke="#7AE0A3" stroke-opacity=".12"/>
+		</pattern>
+	</defs>
+	<rect width="320" height="180" rx="14" fill="url(#bg)"/>
+	<rect x="8" y="8" width="304" height="164" rx="10" fill="url(#grid)"/>
+	<circle cx="136" cy="88" r="46" fill="#17452F" stroke="#7BE3A5" stroke-width="3"/>
+	<circle cx="136" cy="88" r="34" fill="#1E5C40"/>
+	<path d="M128 70l28 18-28 18z" fill="#B9FFD2" stroke="#E5FFEE" stroke-width="2" stroke-linejoin="round"/>
+	<rect x="206" y="58" width="64" height="44" rx="8" fill="#0B2419" stroke="#5FD08C" stroke-width="2"/>
+	<path d="M218 72l8 8-8 8M232 88h14" fill="none" stroke="#A8FFC7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+	<path d="M206 118h64" stroke="#2F714F" stroke-width="2" stroke-dasharray="4 5"/>
+	<text x="238" y="138" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#8FD9B0">实时日志</text>
+	<text x="136" y="154" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="12" fill="#8FD9B0">Java 自动匹配 · 内存可调</text>
+</svg>

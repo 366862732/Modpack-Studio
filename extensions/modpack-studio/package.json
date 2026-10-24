@@ -1,0 +1,608 @@
+{
+	"name": "modpack-studio",
+	"displayName": "Modpack Studio 整合包工具",
+	"description": "Minecraft Java 版整合包开发与游玩工具：实例管理、模组安装、一键启动、日志诊断、整合包导出。",
+	"version": "0.1.0",
+	"publisher": "modpack-studio",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.90.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"minecraft",
+		"modpack",
+		"modrinth",
+		"forge",
+		"fabric"
+	],
+	"icon": "resources/icon.png",
+	"main": "./dist/extension.js",
+	"activationEvents": [
+		"onStartupFinished",
+		"onView:modpack.instances",
+		"onView:modpack.mods",
+		"onView:modpack.run",
+		"onView:modpack.issues",
+		"onView:modpack.assets",
+		"onCommand:modpack.createInstance",
+		"onCommand:modpack.importInstance",
+		"onCommand:modpack.openInstance",
+		"onCommand:modpack.launchClient",
+		"onCommand:modpack.launchServer",
+		"onCommand:modpack.exportPack",
+		"onCommand:modpack.showOutput"
+	],
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "modpack",
+					"title": "整合包",
+					"icon": "resources/modpack.svg"
+				}
+			]
+		},
+		"views": {
+			"modpack": [
+				{
+					"id": "modpack.instances",
+					"name": "整合包",
+					"contextualTitle": "整合包"
+				},
+				{
+					"id": "modpack.mods",
+					"name": "模组",
+					"contextualTitle": "模组"
+				},
+				{
+					"id": "modpack.run",
+					"name": "运行",
+					"contextualTitle": "运行"
+				},
+				{
+				"id": "modpack.issues",
+				"name": "诊断",
+				"contextualTitle": "诊断"
+			},
+			{
+				"id": "modpack.assets",
+				"name": "资源",
+				"contextualTitle": "资源"
+			}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "modpack.instances",
+				"contents": "还没有整合包。\n[新建整合包](command:modpack.createInstance)\n[导入整合包](command:modpack.importInstance)\n\n支持 Fabric、Forge、NeoForge 与纯原版，可从 Modrinth 或本地导入。"
+			},
+			{
+				"view": "modpack.mods",
+				"contents": "选择一个整合包后，这里会列出它的模组。\n[新建整合包](command:modpack.createInstance)\n[打开整合包](command:modpack.openInstance)"
+			},
+			{
+				"view": "modpack.run",
+				"contents": "选择整合包后可以在这里启动游戏、启动服务端并查看运行状态。\n[启动游戏](command:modpack.launchClient)\n[启动服务端](command:modpack.launchServer)"
+			},
+			{
+				"view": "modpack.issues",
+				"contents": "运行游戏后，这里会实时汇总日志中的错误、缺失前置和版本冲突。\n[诊断最近的日志](command:modpack.diagnoseLogs)"
+			},
+			{
+				"view": "modpack.assets",
+				"contents": "选择一个整合包后，这里会列出它的资源包、光影和数据包。\n[搜索并安装资源](command:modpack.searchAssets)"
+			}
+		],
+		"commands": [
+			{
+				"command": "modpack.createInstance",
+				"title": "新建整合包",
+				"category": "整合包",
+				"icon": "$(add)"
+			},
+			{
+				"command": "modpack.importInstance",
+				"title": "导入整合包…",
+				"category": "整合包",
+				"icon": "$(cloud-download)"
+			},
+			{
+				"command": "modpack.openInstance",
+				"title": "打开整合包",
+				"category": "整合包",
+				"icon": "$(folder-opened)"
+			},
+			{
+				"command": "modpack.deleteInstance",
+				"title": "删除整合包",
+				"category": "整合包",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "modpack.showInstanceFolder",
+				"title": "在文件资源管理器中显示",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.openInstanceSettings",
+				"title": "打开整合包设置",
+				"category": "整合包",
+				"icon": "$(gear)"
+			},
+			{
+				"command": "modpack.refresh",
+				"title": "刷新",
+				"category": "整合包",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "modpack.launchClient",
+				"title": "启动游戏",
+				"category": "整合包",
+				"icon": "$(play)"
+			},
+			{
+				"command": "modpack.launchServer",
+				"title": "启动服务端",
+				"category": "整合包",
+				"icon": "$(server-process)"
+			},
+			{
+				"command": "modpack.stopGame",
+				"title": "停止运行",
+				"category": "整合包",
+				"icon": "$(debug-stop)"
+			},
+			{
+				"command": "modpack.installGame",
+				"title": "安装或修复游戏文件",
+				"category": "整合包",
+				"icon": "$(cloud-download)"
+			},
+			{
+				"command": "modpack.searchMods",
+				"title": "搜索并安装模组…",
+				"category": "整合包",
+				"icon": "$(search)"
+			},
+			{
+				"command": "modpack.searchAssets",
+				"title": "搜索并安装资源（资源包/光影/数据包）…",
+				"category": "整合包",
+				"icon": "$(search)"
+			},
+			{
+				"command": "modpack.addModFile",
+				"title": "从本地文件添加模组…",
+				"category": "整合包",
+				"icon": "$(file-add)"
+			},
+			{
+				"command": "modpack.toggleMod",
+				"title": "启用/禁用模组",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.removeMod",
+				"title": "删除模组",
+				"category": "整合包",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "modpack.openModFolder",
+				"title": "打开模组文件夹",
+				"category": "整合包",
+				"icon": "$(folder)"
+			},
+			{
+				"command": "modpack.exportPack",
+				"title": "导出整合包…",
+				"category": "整合包",
+				"icon": "$(archive)"
+			},
+			{
+				"command": "modpack.openLogs",
+				"title": "打开最近日志",
+				"category": "整合包",
+				"icon": "$(output)"
+			},
+			{
+				"command": "modpack.showOutput",
+				"title": "显示运行日志",
+				"category": "整合包",
+				"icon": "$(output)"
+			},
+			{
+				"command": "modpack.diagnoseLogs",
+				"title": "诊断最近的日志",
+				"category": "整合包",
+				"icon": "$(debug-alt)"
+			},
+			{
+				"command": "modpack.clearIssues",
+				"title": "清空诊断结果",
+				"category": "整合包",
+				"icon": "$(clear-all)"
+			},
+			{
+				"command": "modpack.setJava",
+				"title": "选择 Java…",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.setMemory",
+				"title": "设置分配内存…",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.serverCommand",
+				"title": "向服务端发送命令…",
+				"category": "整合包",
+				"icon": "$(terminal)"
+			},
+			{
+				"command": "modpack.configureDatabase",
+				"title": "配置模组资料库…",
+				"category": "整合包",
+				"icon": "$(database)"
+			},
+			{
+				"command": "modpack.testDatabase",
+				"title": "测试 PostgreSQL 连接",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.databaseStats",
+				"title": "查看模组资料库统计",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.openWalkthrough",
+				"title": "打开快速开始",
+				"category": "整合包",
+				"icon": "$(book)"
+			},
+			{
+				"command": "modpack.openAssetFolder",
+				"title": "在文件资源管理器中显示资源文件",
+				"category": "整合包"
+			},
+			{
+				"command": "modpack.removeAsset",
+				"title": "删除资源",
+				"category": "整合包",
+				"icon": "$(trash)"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "modpack.stopGame",
+					"when": "false"
+				},
+				{
+					"command": "modpack.serverCommand",
+					"when": "modpack.serverRunning"
+				},
+				{
+					"command": "modpack.toggleMod",
+					"when": "false"
+				}
+			],
+			"view/title": [
+				{
+					"command": "modpack.createInstance",
+					"when": "view == modpack.instances",
+					"group": "navigation@1"
+				},
+				{
+					"command": "modpack.importInstance",
+					"when": "view == modpack.instances",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.refresh",
+					"when": "view == modpack.instances || view == modpack.mods",
+					"group": "navigation@9"
+				},
+				{
+					"command": "modpack.searchMods",
+					"when": "view == modpack.mods",
+					"group": "navigation@1"
+				},
+				{
+					"command": "modpack.addModFile",
+					"when": "view == modpack.mods",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.launchClient",
+					"when": "view == modpack.run",
+					"group": "navigation@1"
+				},
+				{
+					"command": "modpack.stopGame",
+					"when": "view == modpack.run && modpack.gameRunning",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.exportPack",
+					"when": "view == modpack.run",
+					"group": "navigation@3"
+				},
+				{
+					"command": "modpack.clearIssues",
+					"when": "view == modpack.issues",
+					"group": "navigation@1"
+				},
+				{
+					"command": "modpack.diagnoseLogs",
+					"when": "view == modpack.issues",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.searchAssets",
+					"when": "view == modpack.assets",
+					"group": "navigation@1"
+				},
+				{
+					"command": "modpack.refresh",
+					"when": "view == modpack.assets",
+					"group": "navigation@9"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "modpack.launchClient",
+					"when": "view == modpack.instances && viewItem == instance",
+					"group": "inline@1"
+				},
+				{
+					"command": "modpack.openInstance",
+					"when": "view == modpack.instances && viewItem == instance",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.exportPack",
+					"when": "view == modpack.instances && viewItem == instance",
+					"group": "navigation@3"
+				},
+				{
+					"command": "modpack.openInstanceSettings",
+					"when": "view == modpack.instances && viewItem == instance",
+					"group": "navigation@4"
+				},
+				{
+					"command": "modpack.showInstanceFolder",
+					"when": "view == modpack.instances && viewItem == instance",
+					"group": "navigation@5"
+				},
+				{
+					"command": "modpack.deleteInstance",
+					"when": "view == modpack.instances && viewItem == instance",
+					"group": "danger@1"
+				},
+				{
+					"command": "modpack.toggleMod",
+					"when": "view == modpack.mods && viewItem == mod",
+					"group": "inline@1"
+				},
+				{
+					"command": "modpack.openModFolder",
+					"when": "view == modpack.mods && viewItem == mod",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.removeMod",
+					"when": "view == modpack.mods && viewItem == mod",
+					"group": "danger@1"
+				},
+				{
+					"command": "modpack.openAssetFolder",
+					"when": "view == modpack.assets && viewItem =~ /^asset-(resourcepack|shader|datapack)$/",
+					"group": "navigation@2"
+				},
+				{
+					"command": "modpack.removeAsset",
+					"when": "view == modpack.assets && viewItem =~ /^asset-(resourcepack|shader|datapack)$/",
+					"group": "danger@1"
+				}
+			]
+		},
+		"walkthroughs": [
+			{
+				"id": "modpack-studio.gettingStarted",
+				"title": "开始你的第一个整合包",
+				"description": "从新建实例到导出分发包，五步完成。",
+				"steps": [
+					{
+						"id": "create",
+						"title": "1. 新建整合包",
+						"description": "选择 Minecraft 版本与加载器（Fabric、Forge、NeoForge 或原版）。\n[新建整合包](command:modpack.createInstance)",
+						"media": {
+							"image": "resources/walkthrough/create.svg",
+							"alt": "新建整合包"
+						},
+						"completionEvents": [
+							"onCommand:modpack.createInstance"
+						]
+					},
+					{
+						"id": "install",
+						"title": "2. 安装游戏文件",
+						"description": "自动下载 Minecraft、加载器和运行库。\n[安装或修复游戏文件](command:modpack.installGame)",
+						"media": {
+							"image": "resources/walkthrough/install.svg",
+							"alt": "安装游戏文件"
+						},
+						"completionEvents": [
+							"onCommand:modpack.installGame"
+						]
+					},
+					{
+						"id": "mods",
+						"title": "3. 搜索并安装模组",
+						"description": "从 Modrinth 搜索兼容模组，自动补全前置依赖。\n[搜索并安装模组](command:modpack.searchMods)",
+						"media": {
+							"image": "resources/walkthrough/mods.svg",
+							"alt": "搜索并安装模组"
+						},
+						"completionEvents": [
+							"onCommand:modpack.searchMods"
+						]
+					},
+					{
+						"id": "launch",
+						"title": "4. 启动游戏或服务端",
+						"description": "自动匹配 Java 版本，实时分析日志并给出修复建议。\n[启动游戏](command:modpack.launchClient)\n[启动服务端](command:modpack.launchServer)",
+						"media": {
+							"image": "resources/walkthrough/launch.svg",
+							"alt": "启动游戏"
+						},
+						"completionEvents": [
+							"onCommand:modpack.launchClient",
+							"onCommand:modpack.launchServer"
+						]
+					},
+					{
+						"id": "export",
+						"title": "5. 导出并分享整合包",
+						"description": "支持 mrpack、CurseForge、Prism 与通用 ZIP。\n[导出整合包](command:modpack.exportPack)",
+						"media": {
+							"image": "resources/walkthrough/export.svg",
+							"alt": "导出整合包"
+						},
+						"completionEvents": [
+							"onCommand:modpack.exportPack"
+						]
+					}
+				]
+			}
+		],
+		"configuration": {
+			"title": "整合包工作室",
+			"properties": {
+				"modpack.home": {
+					"type": "string",
+					"default": "",
+					"description": "整合包存放目录。留空时使用用户主目录下的 ModpackStudio。"
+				},
+				"modpack.javaPath": {
+					"type": "string",
+					"default": "",
+					"description": "默认 Java 可执行文件路径。留空时从已安装的 Java 中自动匹配。"
+				},
+				"modpack.memoryMb": {
+					"type": "number",
+					"default": 4096,
+					"minimum": 1024,
+					"maximum": 32768,
+					"description": "分配给 Minecraft 的最大内存（MB）。"
+				},
+				"modpack.jvmArgs": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "额外的 JVM 参数，例如 -XX:+UseG1GC。"
+				},
+				"modpack.offlinePlayerName": {
+					"type": "string",
+					"default": "Steve",
+					"description": "离线模式使用的玩家名。"
+				},
+				"modpack.autoDiagnose": {
+					"type": "boolean",
+					"default": true,
+					"description": "游戏运行时实时分析日志并在“诊断”视图中显示问题。"
+				},
+				"modpack.defaultLoader": {
+					"type": "string",
+					"enum": [
+						"fabric",
+						"forge",
+						"neoforge",
+						"vanilla"
+					],
+					"default": "fabric",
+					"description": "新建整合包时默认使用的模组加载器。"
+				},
+				"modpack.curseforgeApiKey": {
+					"type": "string",
+					"default": "",
+					"description": "可选的 CurseForge API Key，用于导入/导出 CurseForge 整合包。"
+				},
+				"modpack.postgres.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "启用 PostgreSQL 作为模组资料库。关闭后只使用本地 JSON 数据。"
+				},
+				"modpack.postgres.host": {
+					"type": "string",
+					"default": "127.0.0.1",
+					"description": "PostgreSQL 主机地址。"
+				},
+				"modpack.postgres.port": {
+					"type": "number",
+					"default": 5432,
+					"minimum": 1,
+					"maximum": 65535,
+					"description": "PostgreSQL 端口。"
+				},
+				"modpack.postgres.user": {
+					"type": "string",
+					"default": "postgres",
+					"description": "连接 PostgreSQL 使用的用户名。"
+				},
+				"modpack.postgres.database": {
+					"type": "string",
+					"default": "modpack_studio",
+					"description": "模组资料库使用的数据库名，不存在时会自动创建。"
+				},
+				"modpack.postgres.password": {
+					"type": "string",
+					"default": "",
+					"description": "PostgreSQL 密码。建议通过“配置模组资料库”保存到安全存储，而不是写在这里。"
+				}
+			}
+		},
+		"configurationDefaults": {
+			"workbench.startupEditor": "none",
+			"workbench.tips.enabled": false,
+			"workbench.colorTheme": "Default Light Modern",
+			"workbench.iconTheme": "vs-seti",
+			"telemetry.telemetryLevel": "off",
+			"update.mode": "none",
+			"extensions.autoCheckUpdates": false,
+			"settingsSync.ignoredSettings": [
+				"modpack.postgres.password"
+			],
+			"files.autoSave": "afterDelay",
+			"files.autoSaveDelay": 1500,
+			"explorer.compactFolders": false,
+			"window.titleBarStyle": "custom",
+			"editor.fontSize": 14,
+			"editor.minimap.enabled": false,
+			"security.workspace.trust.enabled": false
+		}
+	},
+	"scripts": {
+		"compile": "node esbuild.mjs",
+		"watch": "node esbuild.mjs --watch",
+		"typecheck": "node ../../node_modules/@typescript/native/lib/tsc.js -p tsconfig.json --noEmit"
+	},
+	"devDependencies": {
+		"@types/adm-zip": "^0.5.7",
+		"@types/node": "^22.15.0",
+		"@types/pg": "^8.11.10",
+		"@xmcl/core": "2.13.0",
+		"@xmcl/installer": "5.4.0",
+		"adm-zip": "^0.5.16",
+		"esbuild": "^0.25.0",
+		"pg": "^8.13.1"
+	}
+}

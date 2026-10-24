@@ -1,0 +1,7 @@
+.vscode/**
+src/**
+node_modules/**
+esbuild.mjs
+esbuild.mts
+tsconfig.json
+package-lock.json

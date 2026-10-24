@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop stop-color="#123A2C"/>
+			<stop offset="1" stop-color="#06150F"/>
+		</linearGradient>
+		<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+			<path d="M20 0H0V20" fill="none" stroke="#7AE0A3" stroke-opacity=".12"/>
+		</pattern>
+	</defs>
+	<rect width="320" height="180" rx="14" fill="url(#bg)"/>
+	<rect x="8" y="8" width="304" height="164" rx="10" fill="url(#grid)"/>
+	<path d="M104 92a24 24 0 0 1 3-47 34 34 0 0 1 64-3 22 22 0 0 1 12 41" fill="#123A2C" stroke="#7BE3A5" stroke-width="3" stroke-linecap="round"/>
+	<path d="M160 74v42m0 0l-14-14m14 14l14-14" fill="none" stroke="#C9FFDC" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+	<path d="M218 120l26-15v28l-26 15z" fill="#2E7A50" stroke="#8CFFB6" stroke-width="2"/>
+	<path d="M218 120l-26-15v28l26 15z" fill="#3D9A63" stroke="#8CFFB6" stroke-width="2"/>
+	<path d="M192 105l26 15 26-15" fill="none" stroke="#8CFFB6" stroke-width="2"/>
+	<path d="M196 134v12M218 148v12M240 134v12" stroke="#5FD08C" stroke-width="3" stroke-linecap="round"/>
+</svg>
