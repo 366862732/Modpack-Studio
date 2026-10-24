@@ -5,7 +5,6 @@ import * as path from 'node:path';
 import { promisify } from 'node:util';
 import AdmZip from 'adm-zip';
 import {
-	getFabricLoaderArtifact,
 	install,
 	installDependencies,
 	installFabric,
@@ -14,7 +13,7 @@ import {
 import { MinecraftFolder, Version, launch } from '@xmcl/core';
 import * as vscode from 'vscode';
 import { Instance, LoaderKind } from './instance';
-import { downloadFile, ensureDir, fetchJson, fetchText, javaExecutableName, offlineUuid, parseJavaMajor, pathExists, readJson, runtimeHome, writeJson } from './util';
+import { downloadFile, downloadFileMulti, ensureDir, fetchJson, fetchText, javaExecutableName, offlineUuid, parseJavaMajor, pathExists, readJson, runtimeHome, writeJson } from './util';
 
 const execFileAsync = promisify(execFile);
 
@@ -36,6 +35,45 @@ function mavenInstallOptions(side: 'client' | 'server', officialHost: string, ja
 		java: javaPath,
 		mavenHost: [MIRROR_MAVEN_HOST, officialHost]
 	};
+}
+
+interface FabricLoaderVersion {
+	version: string;
+	maven: string;
+}
+
+interface FabricLoaderArtifact {
+	loader: FabricLoaderVersion;
+	intermediary: FabricLoaderVersion;
+	launcherMeta: {
+		version: number;
+		libraries: {
+			client: { name: string; url: string }[];
+			common: { name: string; url: string }[];
+			server: { name: string; url: string }[];
+		};
+		mainClass: {
+			client: string;
+			server: string;
+		};
+	};
+}
+
+/**
+ * Fetches the Fabric loader artifact. The @xmcl version of this helper hard-codes
+ * meta.fabricmc.net which is unreachable on some networks; this local copy tries
+ * the BMCLAPI mirror first and falls back to the official metadata service.
+ */
+async function getFabricLoaderArtifact(minecraft: string, loader: string): Promise<FabricLoaderArtifact> {
+	const data = await fetchFirstAvailableJson<Array<{ loader: FabricLoaderVersion; intermediary: FabricLoaderVersion; launcherMeta: FabricLoaderArtifact['launcherMeta'] }>>([
+		`${MIRROR_META_HOST}/fabric-meta/v2/versions/loader/${encodeURIComponent(minecraft)}`,
+		`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(minecraft)}`
+	]);
+	const match = data.find(entry => entry.loader.version === loader);
+	if (!match) {
+		throw new Error(`找不到 Fabric Loader ${loader}（Minecraft ${minecraft}）`);
+	}
+	return match;
 }
 
 /** Java major version needed to run the Forge/NeoForge installer. */
@@ -153,6 +191,22 @@ function readInstallerVersionId(file: string): string | undefined {
 	}
 }
 
+/** Rewrites the hard-coded maven.fabricmc.net URLs in a Fabric version JSON. */
+function patchFabricVersionJson(versionJson: string): void {
+	let text: string;
+	try {
+		text = fs.readFileSync(versionJson, 'utf8');
+	} catch {
+		return;
+	}
+	const next = text
+		.split('https://maven.fabricmc.net').join(MIRROR_MAVEN_HOST)
+		.split('http://maven.fabricmc.net').join(MIRROR_MAVEN_HOST);
+	if (next !== text) {
+		fs.writeFileSync(versionJson, next, 'utf8');
+	}
+}
+
 async function runInstaller(javaPath: string, installerJar: string, gameDir: string, progress: InstallProgress): Promise<void> {
 	const launcherProfiles = path.join(gameDir, 'launcher_profiles.json');
 	if (!await pathExists(launcherProfiles)) {
@@ -252,7 +306,13 @@ export async function getVersionDetails(version: string): Promise<VersionDetails
 	if (!meta) {
 		throw new Error(`找不到 Minecraft 版本 ${version}`);
 	}
-	return fetchJson<VersionDetails>(meta.url);
+	// The manifest entry still points at piston-meta.mojang.com which is
+	// frequently unreachable from mainland China; swap the host to the
+	// BMCLAPI mirror and fall back to the official URL.
+	return fetchFirstAvailableJson<VersionDetails>([
+		`${MIRROR_META_HOST}${meta.url.replace(/^https?:\/\/[^/]+/, '')}`,
+		meta.url
+	]);
 }
 
 export function parseMavenVersions(xml: string): string[] {
@@ -262,9 +322,12 @@ export function parseMavenVersions(xml: string): string[] {
 export async function getLoaderVersions(loader: LoaderKind, minecraftVersion: string): Promise<LoaderChoice[]> {
 	try {
 		if (loader === 'fabric') {
-			const data = await fetchJson<Array<{ loader: { version: string; stable?: boolean } }>>(
+			// BMCLAPI mirrors the Fabric version metadata; query it first so
+			// the loader list still works when meta.fabricmc.net is blocked.
+			const data = await fetchFirstAvailableJson<Array<{ loader: { version: string; stable?: boolean } }>>([
+				`${MIRROR_META_HOST}/fabric-meta/v2/versions/loader/${encodeURIComponent(minecraftVersion)}`,
 				`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(minecraftVersion)}`
-			);
+			]);
 			return data.map(entry => ({
 				version: entry.loader.version,
 				label: entry.loader.stable === false ? `${entry.loader.version}（测试版）` : entry.loader.version,
@@ -272,9 +335,11 @@ export async function getLoaderVersions(loader: LoaderKind, minecraftVersion: st
 			}));
 		}
 		if (loader === 'forge') {
+			// The official Forge Maven is unreachable on some networks; query
+			// the BMCLAPI mirror first and fall back to the official one.
 			const xml = await fetchFirstAvailable([
-				`${FORGE_MAVEN}/net/minecraftforge/forge/maven-metadata.xml`,
-				`${MIRROR_MAVEN_HOST}/net/minecraftforge/forge/maven-metadata.xml`
+				`${MIRROR_MAVEN_HOST}/net/minecraftforge/forge/maven-metadata.xml`,
+				`${FORGE_MAVEN}/net/minecraftforge/forge/maven-metadata.xml`
 			]);
 			const prefix = `${minecraftVersion}-`;
 			return parseMavenVersions(xml)
@@ -368,11 +433,28 @@ export async function installGame(instance: Instance, progress: InstallProgress)
 		progress(`正在安装 Fabric Loader ${loaderVersion}…`);
 		const artifact = await getFabricLoaderArtifact(instance.config.minecraftVersion, loaderVersion);
 		const versionId = await installFabric(artifact, folder, { side: 'client' });
+		// installFabric writes a version JSON whose libraries hard-code
+		// https://maven.fabricmc.net which is unreachable on some networks.
+		// Rewrite those URLs to the BMCLAPI mirror so the subsequent
+		// installDependencies can reach them; the original URLs are kept as
+		// the fallback inside libraryHost below.
+		patchFabricVersionJson(folder.getVersionJson(versionId));
 		const resolved = await Version.parse(folder, versionId);
 		progress('正在补全 Fabric 依赖库…');
 		await installDependencies(resolved, {
 			side: 'client',
-			mavenHost: [MIRROR_MAVEN_HOST, 'https://libraries.minecraft.net']
+			mavenHost: [MIRROR_MAVEN_HOST, 'https://libraries.minecraft.net'],
+			// Libraries whose Maven URL points at maven.fabricmc.net (loader
+			// + intermediary) are not covered by mavenHost; route them through
+			// the mirror and keep the official URL as a fallback.
+			libraryHost: library => {
+				const url = library.url ?? '';
+				if (url.includes('maven.fabricmc.net')) {
+					const path = url.replace(/^https?:\/\/maven\.fabricmc\.net/, '');
+					return [`${MIRROR_MAVEN_HOST}${path}`, url];
+				}
+				return [];
+			}
 		});
 		instance.config.versionId = versionId;
 	} else if (instance.config.loader === 'forge') {
@@ -613,17 +695,24 @@ export async function ensureServerJar(instance: Instance): Promise<string> {
 	if (instance.config.loader === 'fabric' && instance.config.loaderVersion) {
 		const fabricLauncher = path.join(instance.gameDir, 'fabric-server-launch.jar');
 		if (!await pathExists(fabricLauncher)) {
-			await downloadFile(
-				`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(instance.config.minecraftVersion)}/${encodeURIComponent(instance.config.loaderVersion)}/server/jar`,
-				fabricLauncher
-			);
+			const mc = instance.config.minecraftVersion;
+			const lv = instance.config.loaderVersion;
+			// Try the BMCLAPI mirror first, then the official Fabric metadata.
+			await downloadFileMulti([
+				`${MIRROR_META_HOST}/fabric-meta/v2/versions/loader/${encodeURIComponent(mc)}/${encodeURIComponent(lv)}/server/jar`,
+				`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(mc)}/${encodeURIComponent(lv)}/server/jar`
+			], fabricLauncher);
 		}
 		if (!await pathExists(target)) {
 			const details = await getVersionDetails(instance.config.minecraftVersion);
 			if (!details.downloads?.server?.url) {
 				throw new Error(`Minecraft ${instance.config.minecraftVersion} 没有可用的服务端下载`);
 			}
-			await downloadFile(details.downloads.server.url, target);
+			const serverUrl = details.downloads.server.url;
+			await downloadFileMulti([
+				`${MIRROR_META_HOST}${serverUrl.replace(/^https?:\/\/[^/]+/, '')}`,
+				serverUrl
+			], target);
 		}
 		return fabricLauncher;
 	}
@@ -635,7 +724,11 @@ export async function ensureServerJar(instance: Instance): Promise<string> {
 		if (!details.downloads?.server?.url) {
 			throw new Error(`Minecraft ${instance.config.minecraftVersion} 没有可用的服务端下载`);
 		}
-		await downloadFile(details.downloads.server.url, target);
+		const serverUrl = details.downloads.server.url;
+		await downloadFileMulti([
+			`${MIRROR_META_HOST}${serverUrl.replace(/^https?:\/\/[^/]+/, '')}`,
+			serverUrl
+		], target);
 	}
 	return target;
 }

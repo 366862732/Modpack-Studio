@@ -182,8 +182,31 @@ export async function downloadFile(
 	throw lastError;
 }
 
-export function delay(ms: number): Promise<void> {
-	return new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Downloads from a list of URLs, trying each in order until one succeeds.
+ * Every source gets its own small retry window (attempts = 1) so a single
+ * unreachable host does not stall the whole download.
+ */
+export async function downloadFileMulti(
+	urls: string[],
+	target: string,
+	headers: Record<string, string> = {},
+	abortSignal?: AbortSignal
+): Promise<void> {
+	let lastError: unknown;
+	for (const url of urls) {
+		if (abortSignal?.aborted) {
+			throw abortSignal.reason ?? new Error('下载已取消');
+		}
+		try {
+			await downloadFile(url, target, headers, 1, abortSignal);
+			return;
+		} catch (error) {
+			lastError = error;
+			await fs.promises.rm(target, { force: true }).catch(() => undefined);
+		}
+	}
+	throw lastError ?? new Error('没有可用的下载源');
 }
 
 function isRetryableNetworkError(error: unknown): boolean {
@@ -197,6 +220,10 @@ function isRetryableNetworkError(error: unknown): boolean {
 		}
 	}
 	return true;
+}
+
+export function delay(ms: number): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
